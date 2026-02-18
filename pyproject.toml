@@ -1,0 +1,36 @@
+[project]
+name = "dashapp"
+version = "0.1.0"
+description = "A cross-platform plugin-based TUI dashboard"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "textual[syntax]>=8.0.0",
+    "textual-dev>=1.8.0",
+]
+
+[project.scripts]
+dashapp = "main:main"
+
+[tool.uv]
+dev-dependencies = [
+    "anyio>=4.0.0",
+    "pre-commit>=4.0.0",
+    "pyright>=1.1.0",
+    "pytest>=8.0.0",
+    "pytest-anyio>=0.0.0",
+    "ruff>=0.15.1",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+anyio_mode = "auto"
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"

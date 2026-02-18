@@ -1,0 +1,6 @@
+{
+  "name": "Demo",
+  "version": "0.1.0",
+  "description": "Proof-of-concept plugin demonstrating the DashApp plugin system",
+  "author": "DashApp"
+}
