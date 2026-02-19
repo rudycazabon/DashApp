@@ -65,7 +65,7 @@ uv run dashapp
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
 2. Create an **OAuth 2.0 Client ID** (Desktop app type)
 3. Enable the **Gmail API** and **Google Calendar API** for your project
-4. Download the credentials file and save it as `credentials.json` in the project root
+4. Download the credentials file and save it as `~/.dashapp/credentials.json`
 5. On first run, a browser window opens for OAuth consent; the token is cached at
    `~/.dashapp/gmail_token.json` and `~/.dashapp/calendar_token.json`
 
@@ -75,14 +75,14 @@ uv run dashapp
 2. Set **Supported account types** to "Personal Microsoft accounts only"
 3. Add a **Redirect URI** → Platform: Mobile and desktop → URI: `http://localhost`
 4. Copy the **Application (client) ID**
-5. Create `outlook_credentials.json` in the project root:
+5. Create `~/.dashapp/outlook_credentials.json`:
    ```json
    {"client_id": "<your-app-client-id>", "tenant_id": "consumers"}
    ```
 6. On first run, a browser window opens for OAuth consent; tokens are cached at
    `~/.dashapp/outlook_token.json` and `~/.dashapp/outlook_calendar_token.json`
 
-Both credential files are gitignored and never committed.
+All credential and token files live in `~/.dashapp/` — never in the project root.
 
 ---
 

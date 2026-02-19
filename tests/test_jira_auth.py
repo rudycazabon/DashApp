@@ -6,12 +6,13 @@ from unittest.mock import patch
 import pytest
 
 from tools.jira.auth import CREDENTIALS_PATH, get_auth
+from util.paths import APP_DIR
 
 
-def test_credentials_path_points_to_project_root() -> None:
-    """CREDENTIALS_PATH should be jira_credentials.json at the project root."""
+def test_credentials_path_under_app_dir() -> None:
+    """CREDENTIALS_PATH should be jira_credentials.json inside APP_DIR (~/.dashapp/)."""
     assert CREDENTIALS_PATH.name == "jira_credentials.json"
-    assert not any(part in ("tools", "jira") for part in CREDENTIALS_PATH.parts)
+    assert CREDENTIALS_PATH.parent == APP_DIR
 
 
 def test_get_auth_raises_when_credentials_file_missing(tmp_path: Path) -> None:

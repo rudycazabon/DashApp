@@ -1,32 +1,28 @@
 """OAuth token management for the Outlook tool via MSAL PublicClientApplication."""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import msal
 
-from util.paths import APP_DIR
+from util.paths import APP_DIR, OUTLOOK_CREDENTIALS_PATH
 
 SCOPES = ["Mail.Read"]
 TOKEN_PATH = APP_DIR / "outlook_token.json"
-
-# outlook_credentials.json lives at the project root (gitignored)
-# tools/outlook/auth.py → tools/outlook/ → tools/ → project root
-CREDENTIALS_PATH = Path(__file__).parent.parent.parent / "outlook_credentials.json"
+CREDENTIALS_PATH = OUTLOOK_CREDENTIALS_PATH
 
 
 def get_access_token() -> str:
     """Return a valid Microsoft Graph access token, using cache or interactive flow.
 
     Raises:
-        FileNotFoundError: When outlook_credentials.json is absent from project root.
+        FileNotFoundError: When outlook_credentials.json is absent from ~/.dashapp/.
         RuntimeError: When MSAL cannot acquire a token.
     """
     if not CREDENTIALS_PATH.exists():
         raise FileNotFoundError(
             f"outlook_credentials.json not found at {CREDENTIALS_PATH}. "
-            "Register an Azure app and create the file at the project root."
+            "Register an Azure app and place the file in ~/.dashapp/."
         )
 
     cred_data: dict[str, Any] = json.loads(CREDENTIALS_PATH.read_text())

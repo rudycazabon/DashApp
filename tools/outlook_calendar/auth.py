@@ -1,19 +1,15 @@
 """OAuth token management for the Outlook Calendar tool via MSAL."""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import msal
 
-from util.paths import APP_DIR
+from util.paths import APP_DIR, OUTLOOK_CREDENTIALS_PATH
 
 SCOPES = ["Calendars.Read"]
 TOKEN_PATH = APP_DIR / "outlook_calendar_token.json"
-
-# Same credentials file as the Outlook mail tool (gitignored).
-# tools/outlook_calendar/auth.py → tools/outlook_calendar/ → tools/ → project root
-CREDENTIALS_PATH = Path(__file__).parent.parent.parent / "outlook_credentials.json"
+CREDENTIALS_PATH = OUTLOOK_CREDENTIALS_PATH
 
 
 def get_access_token() -> str:
@@ -23,13 +19,13 @@ def get_access_token() -> str:
     maintains a separate token cache with Calendars.Read scope.
 
     Raises:
-        FileNotFoundError: When outlook_credentials.json is absent from project root.
+        FileNotFoundError: When outlook_credentials.json is absent from ~/.dashapp/.
         RuntimeError: When MSAL cannot acquire a token.
     """
     if not CREDENTIALS_PATH.exists():
         raise FileNotFoundError(
             f"outlook_credentials.json not found at {CREDENTIALS_PATH}. "
-            "Register an Azure app and create the file at the project root."
+            "Register an Azure app and place the file in ~/.dashapp/."
         )
 
     cred_data: dict[str, Any] = json.loads(CREDENTIALS_PATH.read_text())

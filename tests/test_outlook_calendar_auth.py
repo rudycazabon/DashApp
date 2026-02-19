@@ -13,12 +13,10 @@ from tools.outlook_calendar.auth import (
 from util.paths import APP_DIR
 
 
-def test_credentials_path_points_to_project_root() -> None:
-    """CREDENTIALS_PATH should be outlook_credentials.json at the project root."""
+def test_credentials_path_under_app_dir() -> None:
+    """CREDENTIALS_PATH should be outlook_credentials.json inside APP_DIR."""
     assert CREDENTIALS_PATH.name == "outlook_credentials.json"
-    assert not any(
-        part in ("tools", "outlook_calendar") for part in CREDENTIALS_PATH.parts
-    )
+    assert CREDENTIALS_PATH.parent == APP_DIR
 
 
 def test_token_path_under_app_dir() -> None:

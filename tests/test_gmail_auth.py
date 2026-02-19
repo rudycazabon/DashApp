@@ -9,12 +9,10 @@ from tools.gmail.auth import CREDENTIALS_PATH, TOKEN_PATH, get_credentials
 from util.paths import APP_DIR
 
 
-def test_credentials_path_points_to_project_root() -> None:
-    """CREDENTIALS_PATH should be credentials.json at the project root."""
+def test_credentials_path_under_app_dir() -> None:
+    """CREDENTIALS_PATH should be credentials.json inside APP_DIR (~/.dashapp/)."""
     assert CREDENTIALS_PATH.name == "credentials.json"
-    # The project root is three levels up from tools/gmail/auth.py
-    assert CREDENTIALS_PATH.parent == CREDENTIALS_PATH.parent  # sanity
-    assert not any(part in ("tools", "gmail") for part in CREDENTIALS_PATH.parts)
+    assert CREDENTIALS_PATH.parent == APP_DIR
 
 
 def test_token_path_under_app_dir() -> None:

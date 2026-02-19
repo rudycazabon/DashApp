@@ -155,15 +155,20 @@ DashApp/
 
 ## Implemented tools
 
-| Tool | Package | API | Credentials |
+| Tool | Package | API | Credentials (in `~/.dashapp/`) |
 |---|---|---|---|
 | Gmail | `tools/gmail/` | Gmail API v1 | `credentials.json` (Google Cloud) |
 | Google Calendar | `tools/calendar/` | Calendar API v3 | `credentials.json` (same file) |
 | Outlook Mail | `tools/outlook/` | Graph `/me/messages` | `outlook_credentials.json` |
 | Outlook Calendar | `tools/outlook_calendar/` | Graph `/me/calendarView` | `outlook_credentials.json` (same file) |
+| Jira | `tools/jira/` | Jira REST API v3 | `jira_credentials.json` |
 
 Each tool has three files: `auth.py` (token acquisition + cache), `client.py` (pure API
 functions), `tool.py` (widget + `Tool` class).
+
+**All credential and token files live in `~/.dashapp/`** — never in the project root.
+Credential path constants are defined in `util/paths.py` (`GOOGLE_CREDENTIALS_PATH`,
+`OUTLOOK_CREDENTIALS_PATH`, `JIRA_CREDENTIALS_PATH`).
 
 Google tools use `google-auth-oauthlib` (`InstalledAppFlow`). Token files:
 `~/.dashapp/gmail_token.json`, `~/.dashapp/calendar_token.json`.
@@ -171,6 +176,9 @@ Google tools use `google-auth-oauthlib` (`InstalledAppFlow`). Token files:
 Outlook tools use `msal.PublicClientApplication` (no client secret; personal accounts).
 Token files: `~/.dashapp/outlook_token.json`, `~/.dashapp/outlook_calendar_token.json`.
 `outlook_credentials.json` format: `{"client_id": "...", "tenant_id": "consumers"}`.
+
+Jira uses Basic Auth (`requests.Session`).
+`jira_credentials.json` format: `{"url": "https://yourco.atlassian.net", "email": "...", "api_token": "..."}`.
 
 ## Pull Requests
 
