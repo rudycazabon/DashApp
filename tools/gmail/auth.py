@@ -42,7 +42,7 @@ def get_credentials() -> Credentials:
         final_creds = creds
     else:
         flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS_PATH), SCOPES)
-        # run_local_server returns a union type; cast to the oauth2 Credentials we expect
+        # run_local_server returns a union; cast to oauth2 Credentials we expect
         final_creds = cast(Credentials, flow.run_local_server(port=0))
 
     APP_DIR.mkdir(parents=True, exist_ok=True)

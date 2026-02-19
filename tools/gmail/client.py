@@ -1,7 +1,7 @@
 """Thin wrapper around the Gmail REST API."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -16,6 +16,39 @@ def get_service(creds: Credentials) -> Any:
     return build("gmail", "v1", credentials=creds)
 
 
+def fetch_message_ids(service: Any, today_str: str) -> list[dict[str, Any]]:
+    """Return stub list from Gmail API (id + threadId) for the given date string."""
+    result = (
+        service.users()
+        .messages()
+        .list(userId="me", q=f"after:{today_str}", maxResults=50)
+        .execute()
+    )
+    return cast(list[dict[str, Any]], result.get("messages", []))
+
+
+def fetch_message_detail(service: Any, msg_id: str) -> dict[str, str]:
+    """Fetch one message by ID; return dict with from_, subject, time, snippet."""
+    msg = (
+        service.users()
+        .messages()
+        .get(
+            userId="me",
+            id=msg_id,
+            format="metadata",
+            metadataHeaders=["From", "Subject", "Date"],
+        )
+        .execute()
+    )
+    headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
+    return {
+        "from_": headers.get("From", "(unknown)"),
+        "subject": headers.get("Subject", "(no subject)"),
+        "time": headers.get("Date", ""),
+        "snippet": msg.get("snippet", ""),
+    }
+
+
 def fetch_todays_emails(creds: Credentials) -> list[dict[str, str]]:
     """Return messages received today as a list of dicts.
 
@@ -25,39 +58,5 @@ def fetch_todays_emails(creds: Credentials) -> list[dict[str, str]]:
     """
     service = get_service(creds)
     today = datetime.now().strftime("%Y/%m/%d")
-    query = f"after:{today}"
-
-    result = (
-        service.users().messages().list(userId="me", q=query, maxResults=50).execute()
-    )
-
-    messages = result.get("messages", [])
-    if not messages:
-        return []
-
-    emails: list[dict[str, str]] = []
-    for msg_stub in messages:
-        msg = (
-            service.users()
-            .messages()
-            .get(
-                userId="me",
-                id=msg_stub["id"],
-                format="metadata",
-                metadataHeaders=["From", "Subject", "Date"],
-            )
-            .execute()
-        )
-        headers = {
-            h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])
-        }
-        emails.append(
-            {
-                "from_": headers.get("From", "(unknown)"),
-                "subject": headers.get("Subject", "(no subject)"),
-                "time": headers.get("Date", ""),
-                "snippet": msg.get("snippet", ""),
-            }
-        )
-
-    return emails
+    stubs = fetch_message_ids(service, today)
+    return [fetch_message_detail(service, stub["id"]) for stub in stubs]
