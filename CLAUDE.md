@@ -62,54 +62,121 @@ This document contains critical information about working with this codebase. Fo
 - **Build Test Environments**: Create testing environments for components that are difficult to validate directly
 - **Functional Code**: Use functional and stateless approaches where they improve clarity
 - **Clean logic**: Keep core logic clean and push implementation details to the edges
-- **File Organsiation**: Balance file organization with simplicity - use an appropriate number of files for the project scale
+- **File Organisation**: Balance file organization with simplicity - use an appropriate number of files for the project scale
 
 # Project Structure
 
-The project structure will be as follows:
-
 ```
-DashAPP/
-├── .gitignore
-├── README.md
-├── config.py
-├── tui/                      # TUI
-├── tools/                    # tools (self-contained)
-│   └── <toolname>/
-│       ├── tool.py           # Tool implementation
-│       ├── manifest.json     # tool metadata
-├── util/                     # Shared utilities
-├── sqlite3/                     # Shared utilities
-├── pytest/                   # Shared testing
-├── loader.py                 # Tool discovery and registration
-└── pyproject.toml            # Dependencies
+DashApp/
+├── main.py                       # Entry point — launches DashApp().run()
+├── loader.py                     # Plugin discovery and loading
+├── config.py                     # Config class — high-level get/set over SQLite
+├── pyproject.toml                # Dependencies and uv script entry point
+├── tui/
+│   ├── app.py                    # DashApp(App[None]) — TabbedContent shell
+│   └── screens/
+│       └── home.py               # HomeScreen widget — lists loaded tools
+├── tools/                        # Plugin directory — one sub-package per tool
+│   ├── base.py                   # BaseTool ABC (name, description, build_widget)
+│   ├── demo/                     # Smoke-test plugin
+│   ├── gmail/                    # Gmail mail tool
+│   ├── calendar/                 # Google Calendar tool
+│   ├── outlook/                  # Outlook mail tool
+│   └── outlook_calendar/         # Outlook Calendar tool
+├── db/
+│   └── manager.py                # SQLite helpers (get_connection, get/set_setting)
+├── util/
+│   └── paths.py                  # APP_DIR, DB_PATH, LOGS_DIR constants
+└── tests/                        # pytest test suite
 ```
 
 # System Architecture
 
-1. Desired components: DashApp will use the python libraries textual, textual-dev, and textual[syntax] as the of the TUI interface. 
-2. Tools: The main page of DashApp will present a menu of available tools to select from in a list of tabs. A tabbed page will present the content of each tool.
-   1. Initial tools: As a proof-of-concept I want DashApp to build tools for my personal use. As such, security and tokens required to access my data will be asked by the application. You will install the required python packages and libraries.
-      1. Presentation of email from GMail for that day
-      2. Access and presentaiton of Google Calendar entries for that day.
-      3. Presentation of Outlook (personal) for that day
-      4. Access and presenation of Outlook calendar for that day
-3. Database: It is required for DashApp to save its state between sessions. As such, a simple database like sqlite3 will be sufficient.
-4. Plugin system: each tool will be a plugin. The framework will have a loader.py that performs discovery and loading of the plugins in the tools directory. Each plugin will present
+## Entry point
 
-## Core Components
+`main.py` configures logging then calls `DashApp().run()`. The `dashapp` script in
+`pyproject.toml` points here. Run with `uv run python main.py` or (after `uv sync`)
+`uv run dashapp`.
 
-- `config.py`: Configuration management
-- `daemon.py`: Main daemon
-[etc... fill in here]
+## TUI (`tui/`)
+
+`tui/app.py` — `DashApp(App[None])`:
+- Calls `load_tools()` at init to discover plugins.
+- `compose()` builds a `TabbedContent` with a fixed `Home` tab followed by one
+  `TabPane` per loaded tool. Tab IDs are `tool.name.lower().replace(" ", "-")`.
+- `Header` and `Footer` wrap the content.
+
+`tui/screens/home.py` — `HomeScreen(Widget)`:
+- Receives the tool list and renders a welcome header plus a labelled entry for each
+  tool showing its name and description.
+
+## Plugin system (`loader.py`, `tools/`)
+
+`loader.py` — `load_tools() -> list[BaseTool]`:
+- Iterates `tools/` sorted alphabetically, skipping `_`-prefixed directories.
+- For each candidate, requires `manifest.json` (must have a `"name"` key) and `tool.py`.
+- Imports `tools.<dir>.tool` and instantiates the `Tool` class (must subclass `BaseTool`).
+- Errors are logged as warnings and the plugin is skipped; the app always starts.
+
+`tools/base.py` — `BaseTool(ABC)`:
+- Three abstract members every plugin must implement:
+  - `name: str` — shown in tabs and the home screen.
+  - `description: str` — shown on the home screen.
+  - `build_widget() -> Widget` — returns the Textual widget for the tab pane.
+
+`tools/<name>/manifest.json` — plugin metadata:
+```json
+{"name": "Tool Name", "version": "0.1.0", "description": "...", "author": "DashApp"}
+```
+
+`tools/<name>/tool.py` — plugin implementation:
+- Must define `class Tool(BaseTool)` implementing the three abstract members.
+- Widget classes follow the pattern: status bar (dot + text + progress bar) +
+  `VerticalScroll` of `Collapsible` entries. Data loaded in a worker thread via
+  `self.run_worker(self._load, thread=True)`. UI updates from the worker use
+  `self.app.call_from_thread(...)`.
+
+## Database (`db/`, `config.py`)
+
+`db/manager.py`:
+- `get_connection(db_path)` — opens/creates `~/.dashapp/dashapp.db`, creates the
+  `settings` table if absent, sets `row_factory`.
+- `get_setting(key, conn)` / `set_setting(key, value, conn)` — key-value store backed
+  by a single `settings` table with upsert.
+
+`config.py` — `Config` class:
+- Thin wrapper holding an open connection; exposes `get(key, default)`, `set(key, value)`,
+  `close()`.
+
+`util/paths.py`:
+- `APP_DIR = Path.home() / ".dashapp"`
+- `DB_PATH = APP_DIR / "dashapp.db"`
+- `LOGS_DIR = APP_DIR / "logs"`
+
+## Implemented tools
+
+| Tool | Package | API | Credentials |
+|---|---|---|---|
+| Gmail | `tools/gmail/` | Gmail API v1 | `credentials.json` (Google Cloud) |
+| Google Calendar | `tools/calendar/` | Calendar API v3 | `credentials.json` (same file) |
+| Outlook Mail | `tools/outlook/` | Graph `/me/messages` | `outlook_credentials.json` |
+| Outlook Calendar | `tools/outlook_calendar/` | Graph `/me/calendarView` | `outlook_credentials.json` (same file) |
+
+Each tool has three files: `auth.py` (token acquisition + cache), `client.py` (pure API
+functions), `tool.py` (widget + `Tool` class).
+
+Google tools use `google-auth-oauthlib` (`InstalledAppFlow`). Token files:
+`~/.dashapp/gmail_token.json`, `~/.dashapp/calendar_token.json`.
+
+Outlook tools use `msal.PublicClientApplication` (no client secret; personal accounts).
+Token files: `~/.dashapp/outlook_token.json`, `~/.dashapp/outlook_calendar_token.json`.
+`outlook_credentials.json` format: `{"client_id": "...", "tenant_id": "consumers"}`.
 
 ## Pull Requests
 
 - Create a detailed message of what changed. Focus on the high level description of
   the problem it tries to solve, and how it is solved. Don't go into the specifics of the
   code unless it adds clarity.
-
-## Python Tools
 
 ## Code Formatting
 
@@ -144,7 +211,7 @@ DashAPP/
 
 ## Error Resolution
 
-2. Common Issues
+1. Common Issues
    - Line length:
      - Break strings with parentheses
      - Multi-line function calls
@@ -154,7 +221,7 @@ DashAPP/
      - Narrow string types
      - Match existing patterns
 
-3. Best Practices
+2. Best Practices
    - Check git status before commits
    - Run formatters before type checks
    - Keep changes minimal
