@@ -1,5 +1,7 @@
 """Outlook tool plugin — displays today's personal Outlook messages."""
 
+import logging
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.widget import Widget
@@ -8,6 +10,8 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.outlook.auth import get_access_token
 from tools.outlook.client import fetch_todays_messages
+
+_log = logging.getLogger(__name__)
 
 
 class OutlookWidget(Widget):
@@ -49,19 +53,23 @@ class OutlookWidget(Widget):
         def update_status(text: str) -> None:
             self.query_one("#status-text", Static).update(text)
 
+        _log.info("loading started")
         try:
             self.app.call_from_thread(update_progress, 0)  # type: ignore[attr-defined]
 
             token = get_access_token()
+            _log.info("auth successful")
             self.app.call_from_thread(update_progress, 20)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching messages…")  # type: ignore[attr-defined]
 
             self.app.call_from_thread(update_progress, 40)  # type: ignore[attr-defined]
             messages = fetch_todays_messages(token)
+            _log.info("loaded %d messages", len(messages))
             self.app.call_from_thread(update_progress, 80)  # type: ignore[attr-defined]
 
             self.app.call_from_thread(self._populate, messages)  # type: ignore[attr-defined]
         except Exception as exc:
+            _log.error("load failed: %s", exc, exc_info=True)
             self.app.call_from_thread(self._show_error, str(exc))  # type: ignore[attr-defined]
 
     def _populate(self, messages: list[dict[str, str]]) -> None:

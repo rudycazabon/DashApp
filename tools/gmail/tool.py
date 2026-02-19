@@ -1,5 +1,6 @@
 """Gmail tool plugin — displays today's emails as expandable Collapsible entries."""
 
+import logging
 from datetime import datetime
 
 from textual.app import ComposeResult
@@ -10,6 +11,8 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.gmail.auth import get_credentials
 from tools.gmail.client import fetch_message_detail, fetch_message_ids, get_service
+
+_log = logging.getLogger(__name__)
 
 
 class GmailWidget(Widget):
@@ -51,16 +54,19 @@ class GmailWidget(Widget):
         def update_status(text: str) -> None:
             self.query_one("#status-text", Static).update(text)
 
+        _log.info("loading started")
         try:
             self.app.call_from_thread(update_progress, 0)  # type: ignore[attr-defined]
 
             creds = get_credentials()
+            _log.info("auth successful")
             self.app.call_from_thread(update_progress, 20)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching message list…")  # type: ignore[attr-defined]
 
             service = get_service(creds)
             today = datetime.now().strftime("%Y/%m/%d")
             stubs = fetch_message_ids(service, today)
+            _log.info("found %d message stubs", len(stubs))
             self.app.call_from_thread(update_progress, 40)  # type: ignore[attr-defined]
 
             total = len(stubs)
@@ -71,8 +77,10 @@ class GmailWidget(Widget):
                 pct = 40 + int(60 * (i + 1) / max(total, 1))
                 self.app.call_from_thread(update_progress, pct)  # type: ignore[attr-defined]
 
+            _log.info("loaded %d emails", len(emails))
             self.app.call_from_thread(self._populate, emails)  # type: ignore[attr-defined]
         except Exception as exc:
+            _log.error("load failed: %s", exc, exc_info=True)
             self.app.call_from_thread(self._show_error, str(exc))  # type: ignore[attr-defined]
 
     def _populate(self, emails: list[dict[str, str]]) -> None:

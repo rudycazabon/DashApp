@@ -48,12 +48,22 @@ def fetch_issues(
 
     keys_joined = ", ".join(project_keys)
     jql = f"project in ({keys_joined}) AND statusCategory != Done ORDER BY updated DESC"
-    resp = session.get(
-        f"{base_url}/rest/api/3/search",
-        params={
+    # GET /rest/api/3/search is deprecated (410 Gone on Jira Cloud).
+    # Use POST /rest/api/3/search/jql instead.
+    resp = session.post(
+        f"{base_url}/rest/api/3/search/jql",
+        json={
             "jql": jql,
             "maxResults": 200,
-            "fields": "summary,status,issuetype,priority,assignee,updated,project",
+            "fields": [
+                "summary",
+                "status",
+                "issuetype",
+                "priority",
+                "assignee",
+                "updated",
+                "project",
+            ],
         },
         timeout=30,
     )

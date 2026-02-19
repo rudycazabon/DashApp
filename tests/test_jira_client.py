@@ -14,10 +14,10 @@ from tools.jira.client import (
 BASE_URL = "https://example.atlassian.net"
 
 
-def _mock_session(json_data: dict) -> MagicMock:
-    """Return a mock session whose get() call returns json_data."""
+def _mock_session(json_data: dict, method: str = "get") -> MagicMock:
+    """Return a mock session whose get() or post() call returns json_data."""
     session = MagicMock()
-    session.get.return_value.json.return_value = json_data
+    getattr(session, method).return_value.json.return_value = json_data
     return session
 
 
@@ -88,7 +88,7 @@ def test_parse_project_defaults_for_missing_fields() -> None:
 
 def test_fetch_issues_returns_issues() -> None:
     """fetch_issues returns the 'issues' list from the response."""
-    session = _mock_session({"issues": [{"key": "PROJ-1"}, {"key": "PROJ-2"}]})
+    session = _mock_session({"issues": [{"key": "PROJ-1"}, {"key": "PROJ-2"}]}, "post")
 
     result = fetch_issues(session, BASE_URL, ["PROJ"])
 
@@ -102,7 +102,7 @@ def test_fetch_issues_empty_when_no_project_keys() -> None:
     result = fetch_issues(session, BASE_URL, [])
 
     assert result == []
-    session.get.assert_not_called()
+    session.post.assert_not_called()
 
 
 def test_fetch_issues_raises_on_http_error() -> None:
@@ -110,7 +110,7 @@ def test_fetch_issues_raises_on_http_error() -> None:
     import requests as req_lib
 
     session = MagicMock()
-    session.get.return_value.raise_for_status.side_effect = req_lib.HTTPError("401")
+    session.post.return_value.raise_for_status.side_effect = req_lib.HTTPError("401")
 
     with pytest.raises(req_lib.HTTPError):
         fetch_issues(session, BASE_URL, ["PROJ"])

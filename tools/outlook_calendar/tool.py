@@ -1,5 +1,7 @@
 """Outlook Calendar tool plugin — displays today's personal calendar events."""
 
+import logging
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.widget import Widget
@@ -12,6 +14,8 @@ from tools.outlook_calendar.client import (
     fetch_events,
     parse_event,
 )
+
+_log = logging.getLogger(__name__)
 
 
 class OutlookCalendarWidget(Widget):
@@ -53,10 +57,12 @@ class OutlookCalendarWidget(Widget):
         def update_status(text: str) -> None:
             self.query_one("#status-text", Static).update(text)
 
+        _log.info("loading started")
         try:
             self.app.call_from_thread(update_progress, 0)  # type: ignore[attr-defined]
 
             token = get_access_token()
+            _log.info("auth successful")
             self.app.call_from_thread(update_progress, 20)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching events…")  # type: ignore[attr-defined]
 
@@ -64,13 +70,16 @@ class OutlookCalendarWidget(Widget):
             self.app.call_from_thread(update_progress, 40)  # type: ignore[attr-defined]
 
             stubs = fetch_events(token, time_min, time_max)
+            _log.info("found %d events", len(stubs))
             self.app.call_from_thread(update_progress, 80)  # type: ignore[attr-defined]
 
             events = [parse_event(s) for s in stubs]
             self.app.call_from_thread(update_progress, 100)  # type: ignore[attr-defined]
 
+            _log.info("loaded %d events", len(events))
             self.app.call_from_thread(self._populate, events)  # type: ignore[attr-defined]
         except Exception as exc:
+            _log.error("load failed: %s", exc, exc_info=True)
             self.app.call_from_thread(self._show_error, str(exc))  # type: ignore[attr-defined]
 
     def _populate(self, events: list[dict[str, str]]) -> None:

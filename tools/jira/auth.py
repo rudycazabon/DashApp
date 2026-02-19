@@ -31,7 +31,22 @@ def get_auth() -> tuple[requests.Session, str]:
         )
 
     creds = json.loads(CREDENTIALS_PATH.read_text())
+
+    missing = [k for k in ("url", "email", "api_token") if k not in creds]
+    if missing:
+        raise ValueError(
+            f"jira_credentials.json is missing required keys: {', '.join(missing)}. "
+            'Expected: {"url": "https://yourcompany.atlassian.net", '
+            '"email": "you@example.com", "api_token": "your-token"}'
+        )
+
     base_url: str = creds["url"].rstrip("/")
+    if not base_url.startswith(("http://", "https://")):
+        raise ValueError(
+            f"jira_credentials.json 'url' value looks wrong: {base_url!r}. "
+            "It should start with https://, e.g. https://yourcompany.atlassian.net"
+        )
+
     email: str = creds["email"]
     api_token: str = creds["api_token"]
 

@@ -1,5 +1,8 @@
 """Jira tool plugin — displays open issues grouped by project."""
 
+import logging
+
+from rich.markup import escape
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widget import Widget
@@ -8,6 +11,8 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.jira.auth import get_auth
 from tools.jira.client import fetch_issues, fetch_projects, parse_issue, parse_project
+
+_log = logging.getLogger(__name__)
 
 
 class JiraWidget(Widget):
@@ -49,21 +54,27 @@ class JiraWidget(Widget):
         def update_status(text: str) -> None:
             self.query_one("#status-text", Static).update(text)
 
+        _log.info("loading started")
         try:
             self.app.call_from_thread(update_progress, 0)  # type: ignore[attr-defined]
 
             session, base_url = get_auth()
+            _log.info("auth successful — %s", base_url)
             self.app.call_from_thread(update_progress, 20)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching projects…")  # type: ignore[attr-defined]
 
             raw_projects = fetch_projects(session, base_url)
             projects = [parse_project(p) for p in raw_projects]
+            _log.info("found %d projects", len(projects))
             self.app.call_from_thread(update_progress, 40)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching issues…")  # type: ignore[attr-defined]
 
             project_keys = [p["key"] for p in projects]
             raw_issues = fetch_issues(session, base_url, project_keys)
             issues = [parse_issue(i) for i in raw_issues]
+            _log.info(
+                "found %d open issues across %d projects", len(issues), len(projects)
+            )
             self.app.call_from_thread(update_progress, 80)  # type: ignore[attr-defined]
 
             issues_by_project: dict[str, list[dict[str, str]]] = {}
@@ -72,8 +83,10 @@ class JiraWidget(Widget):
                 issues_by_project.setdefault(pk, []).append(issue)
 
             self.app.call_from_thread(update_progress, 100)  # type: ignore[attr-defined]
+            _log.info("load complete")
             self.app.call_from_thread(self._populate, projects, issues_by_project)  # type: ignore[attr-defined]
         except Exception as exc:
+            _log.error("load failed: %s", exc, exc_info=True)
             self.app.call_from_thread(self._show_error, str(exc))  # type: ignore[attr-defined]
 
     def _populate(
@@ -132,7 +145,9 @@ class JiraWidget(Widget):
             pass
 
         self.query_one("#dot", Static).update("[red]●[/red]")
-        self.query_one("#status-text", Static).update(f"[red]Error:[/red] {msg}")
+        self.query_one("#status-text", Static).update(
+            f"[red]Error:[/red] {escape(msg)}"
+        )
         self.query_one("#progress", ProgressBar).display = False
 
 

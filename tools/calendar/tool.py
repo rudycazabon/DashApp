@@ -1,5 +1,7 @@
 """Calendar tool plugin — displays today's Google Calendar events."""
 
+import logging
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.widget import Widget
@@ -12,6 +14,8 @@ from tools.calendar.client import (
     fetch_event_stubs,
     get_service,
 )
+
+_log = logging.getLogger(__name__)
 
 
 class CalendarWidget(Widget):
@@ -53,10 +57,12 @@ class CalendarWidget(Widget):
         def update_status(text: str) -> None:
             self.query_one("#status-text", Static).update(text)
 
+        _log.info("loading started")
         try:
             self.app.call_from_thread(update_progress, 0)  # type: ignore[attr-defined]
 
             creds = get_credentials()
+            _log.info("auth successful")
             self.app.call_from_thread(update_progress, 20)  # type: ignore[attr-defined]
             self.app.call_from_thread(update_status, "Fetching events…")  # type: ignore[attr-defined]
 
@@ -65,6 +71,7 @@ class CalendarWidget(Widget):
 
             time_min, time_max = _today_bounds()
             stubs = fetch_event_stubs(service, time_min, time_max)
+            _log.info("found %d events", len(stubs))
             self.app.call_from_thread(update_progress, 80)  # type: ignore[attr-defined]
 
             from tools.calendar.client import parse_event
@@ -72,8 +79,10 @@ class CalendarWidget(Widget):
             events = [parse_event(s) for s in stubs]
             self.app.call_from_thread(update_progress, 100)  # type: ignore[attr-defined]
 
+            _log.info("loaded %d events", len(events))
             self.app.call_from_thread(self._populate, events)  # type: ignore[attr-defined]
         except Exception as exc:
+            _log.error("load failed: %s", exc, exc_info=True)
             self.app.call_from_thread(self._show_error, str(exc))  # type: ignore[attr-defined]
 
     def _populate(self, events: list[dict[str, str]]) -> None:
