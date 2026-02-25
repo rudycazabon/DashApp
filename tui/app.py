@@ -24,13 +24,26 @@ class DashApp(App[None]):
         super().__init__()
         self._tools: list[BaseTool] = load_tools()
 
+    def _cycle_tab(self, direction: int) -> None:
+        """Cycle the active tab by +1 or -1."""
+        tc = self.query_one(TabbedContent)
+        pane_ids = [p.id for p in tc.query(TabPane) if p.id]
+        if not pane_ids:
+            return
+        try:
+            idx = pane_ids.index(tc.active)
+        except ValueError:
+            tc.active = pane_ids[0]
+            return
+        tc.active = pane_ids[(idx + direction) % len(pane_ids)]
+
     def action_next_tab(self) -> None:
         """Switch to the next tab."""
-        self.query_one(TabbedContent).action_next_tab()  # type: ignore[attr-defined]
+        self._cycle_tab(1)
 
     def action_prev_tab(self) -> None:
         """Switch to the previous tab."""
-        self.query_one(TabbedContent).action_previous_tab()  # type: ignore[attr-defined]
+        self._cycle_tab(-1)
 
     def compose(self) -> ComposeResult:
         """Build the full UI: header, tabbed content, footer."""
