@@ -14,11 +14,12 @@ from tools.outlook_calendar.client import (
     fetch_events,
     parse_event,
 )
+from tools.widget import NavigableToolWidget
 
 _log = logging.getLogger(__name__)
 
 
-class OutlookCalendarWidget(Widget):
+class OutlookCalendarWidget(NavigableToolWidget):
     """Textual widget that loads and displays today's Outlook Calendar events."""
 
     DEFAULT_CSS = """

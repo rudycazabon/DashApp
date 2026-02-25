@@ -11,11 +11,12 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.gmail.auth import get_credentials
 from tools.gmail.client import fetch_message_detail, fetch_message_ids, get_service
+from tools.widget import NavigableToolWidget
 
 _log = logging.getLogger(__name__)
 
 
-class GmailWidget(Widget):
+class GmailWidget(NavigableToolWidget):
     """Textual widget that loads and displays today's Gmail messages."""
 
     DEFAULT_CSS = """

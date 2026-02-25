@@ -11,11 +11,12 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.jira.auth import get_auth
 from tools.jira.client import fetch_issues, fetch_projects, parse_issue, parse_project
+from tools.widget import NavigableToolWidget
 
 _log = logging.getLogger(__name__)
 
 
-class JiraWidget(Widget):
+class JiraWidget(NavigableToolWidget):
     """Textual widget that loads and displays open Jira issues by project."""
 
     DEFAULT_CSS = """

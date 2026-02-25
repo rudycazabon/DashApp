@@ -10,11 +10,12 @@ from textual.widgets import Collapsible, Label, ProgressBar, Static
 from tools.base import BaseTool
 from tools.outlook.auth import get_access_token
 from tools.outlook.client import fetch_todays_messages
+from tools.widget import NavigableToolWidget
 
 _log = logging.getLogger(__name__)
 
 
-class OutlookWidget(Widget):
+class OutlookWidget(NavigableToolWidget):
     """Textual widget that loads and displays today's Outlook messages."""
 
     DEFAULT_CSS = """

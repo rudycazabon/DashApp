@@ -14,11 +14,12 @@ from tools.calendar.client import (
     fetch_event_stubs,
     get_service,
 )
+from tools.widget import NavigableToolWidget
 
 _log = logging.getLogger(__name__)
 
 
-class CalendarWidget(Widget):
+class CalendarWidget(NavigableToolWidget):
     """Textual widget that loads and displays today's Google Calendar events."""
 
     DEFAULT_CSS = """

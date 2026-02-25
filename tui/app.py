@@ -1,6 +1,7 @@
 """DashApp — main Textual application."""
 
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.widgets import Footer, Header, TabbedContent, TabPane
 
 from loader import load_tools
@@ -14,9 +15,22 @@ class DashApp(App[None]):
     TITLE = "DashApp"
     SUB_TITLE = "Your personal TUI dashboard"
 
+    BINDINGS = [
+        Binding("tab", "next_tab", "Next Tab", priority=True, show=True),
+        Binding("shift+tab", "prev_tab", "Prev Tab", priority=True, show=True),
+    ]
+
     def __init__(self) -> None:
         super().__init__()
         self._tools: list[BaseTool] = load_tools()
+
+    def action_next_tab(self) -> None:
+        """Switch to the next tab."""
+        self.query_one(TabbedContent).action_next_tab()  # type: ignore[attr-defined]
+
+    def action_prev_tab(self) -> None:
+        """Switch to the previous tab."""
+        self.query_one(TabbedContent).action_previous_tab()  # type: ignore[attr-defined]
 
     def compose(self) -> ComposeResult:
         """Build the full UI: header, tabbed content, footer."""
