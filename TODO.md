@@ -1,7 +1,7 @@
 # DashApp TODO
 
 > Auto-maintained per CLAUDE.md directive. Update on every session start if tasks change.
-> Last updated: 2026-02-25
+> Last updated: 2026-02-26
 
 ---
 
@@ -25,15 +25,10 @@
 ---
 
 ### 3. Packaging and distribution
-- **Status:** Pending
-- **Context:** `pyproject.toml` already has a `[project.scripts]` entry (`dashapp`).
-  Need to verify wheel build, standalone install, and `uv tool install` workflow.
-- **Steps:**
-  - `uv build` — produce sdist + wheel in `dist/`
-  - `uv tool install dist/dashapp-*.whl` — test isolated install
-  - Verify `dashapp` command works after install without dev dependencies
-  - Consider adding a `MANIFEST.in` or `[tool.hatch.build]` include rules if
-    `tools/` plugin manifests are not bundled automatically
+- **Status:** Done
+- **Context:** Build system configured (setuptools), wheel verified via `uv tool install`.
+  All `manifest.json` files bundled. `textual-dev` moved to dev-only.
+  See `checkpoints/11-packaging.md`.
 
 ---
 
@@ -75,3 +70,5 @@
 | C05 | Outlook Calendar tool | `checkpoints/05-outlook-calendar-tool.md` |
 | C06 | Jira tool + session logging | `checkpoints/08-jira-tool-and-logging.md` |
 | C07 | Credential migration to `~/.dashapp/` | `checkpoints/09-credential-migration.md` |
+| C08 | Keyboard navigation (Tab/Shift-Tab/arrows) | `checkpoints/10-keyboard-navigation.md` |
+| C09 | Packaging and distribution | `checkpoints/11-packaging.md` |
