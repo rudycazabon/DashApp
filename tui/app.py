@@ -45,6 +45,23 @@ class DashApp(App[None]):
         """Switch to the previous tab."""
         self._cycle_tab(-1)
 
+    def on_tabbed_content_tab_activated(
+        self, event: TabbedContent.TabActivated
+    ) -> None:
+        """Focus the scroll area when a tab becomes active.
+
+        This ensures Down arrow immediately selects the first list item
+        rather than requiring the user to click into the content first.
+        Home tab has no #scroll, so the exception is silently ignored.
+        """
+        pane = getattr(event, "pane", None)
+        if pane is None:
+            return
+        try:
+            pane.query_one("#scroll").focus()
+        except Exception:
+            pass
+
     def compose(self) -> ComposeResult:
         """Build the full UI: header, tabbed content, footer."""
         yield Header()

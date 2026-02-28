@@ -306,7 +306,7 @@ wheels = [
 [[package]]
 name = "dashapp"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "google-api-python-client" },
     { name = "google-auth-httplib2" },
@@ -314,7 +314,6 @@ dependencies = [
     { name = "msal" },
     { name = "requests" },
     { name = "textual", extra = ["syntax"] },
-    { name = "textual-dev" },
 ]
 
 [package.dev-dependencies]
@@ -325,6 +324,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-anyio" },
     { name = "ruff" },
+    { name = "textual-dev" },
 ]
 
 [package.metadata]
@@ -335,7 +335,6 @@ requires-dist = [
     { name = "msal", specifier = ">=1.34.0" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "textual", extras = ["syntax"], specifier = ">=8.0.0" },
-    { name = "textual-dev", specifier = ">=1.8.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -346,6 +345,7 @@ dev = [
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-anyio", specifier = ">=0.0.0" },
     { name = "ruff", specifier = ">=0.15.1" },
+    { name = "textual-dev", specifier = ">=1.8.0" },
 ]
 
 [[package]]

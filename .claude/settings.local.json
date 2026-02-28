@@ -12,7 +12,17 @@
       "Bash(uv run pytest:*)",
       "Bash(uv run pyright:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(uv run python:*)",
+      "Bash(uv run:*)",
+      "Bash(python:*)",
+      "Bash(cd /d/projects/DashApp && uv build 2>&1)",
+      "Bash(cd /d/projects/DashApp && uv sync 2>&1)",
+      "Bash(cd /d/projects/DashApp && uv tool install dist/dashapp-0.1.0-py3-none-any.whl 2>&1)",
+      "Bash(uv tool:*)"
     ]
   }
 }
