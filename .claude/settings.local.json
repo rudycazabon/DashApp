@@ -22,7 +22,8 @@
       "Bash(cd /d/projects/DashApp && uv build 2>&1)",
       "Bash(cd /d/projects/DashApp && uv sync 2>&1)",
       "Bash(cd /d/projects/DashApp && uv tool install dist/dashapp-0.1.0-py3-none-any.whl 2>&1)",
-      "Bash(uv tool:*)"
+      "Bash(uv tool:*)",
+      "Bash(xargs cat)"
     ]
   }
 }
