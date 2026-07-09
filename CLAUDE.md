@@ -79,10 +79,8 @@ DashApp/
 ├── tools/                        # Plugin directory — one sub-package per tool
 │   ├── base.py                   # BaseTool ABC (name, description, build_widget)
 │   ├── demo/                     # Smoke-test plugin
-│   ├── gmail/                    # Gmail mail tool
-│   ├── calendar/                 # Google Calendar tool
-│   ├── outlook/                  # Outlook mail tool
-│   └── outlook_calendar/         # Outlook Calendar tool
+│   ├── jira/                     # Jira tool
+│   └── confluence/               # Confluence tool
 ├── db/
 │   └── manager.py                # SQLite helpers (get_connection, get/set_setting)
 ├── util/
@@ -157,28 +155,21 @@ DashApp/
 
 | Tool | Package | API | Credentials (in `~/.dashapp/`) |
 |---|---|---|---|
-| Gmail | `tools/gmail/` | Gmail API v1 | `credentials.json` (Google Cloud) |
-| Google Calendar | `tools/calendar/` | Calendar API v3 | `credentials.json` (same file) |
-| Outlook Mail | `tools/outlook/` | Graph `/me/messages` | `outlook_credentials.json` |
-| Outlook Calendar | `tools/outlook_calendar/` | Graph `/me/calendarView` | `outlook_credentials.json` (same file) |
 | Jira | `tools/jira/` | Jira REST API v3 | `jira_credentials.json` |
+| Confluence | `tools/confluence/` | Confluence Cloud REST API v2 | `confluence_credentials.json` |
 
 Each tool has three files: `auth.py` (token acquisition + cache), `client.py` (pure API
 functions), `tool.py` (widget + `Tool` class).
 
 **All credential and token files live in `~/.dashapp/`** — never in the project root.
-Credential path constants are defined in `util/paths.py` (`GOOGLE_CREDENTIALS_PATH`,
-`OUTLOOK_CREDENTIALS_PATH`, `JIRA_CREDENTIALS_PATH`).
+Credential path constants are defined in `util/paths.py` (`JIRA_CREDENTIALS_PATH`,
+`CONFLUENCE_CREDENTIALS_PATH`).
 
-Google tools use `google-auth-oauthlib` (`InstalledAppFlow`). Token files:
-`~/.dashapp/gmail_token.json`, `~/.dashapp/calendar_token.json`.
-
-Outlook tools use `msal.PublicClientApplication` (no client secret; personal accounts).
-Token files: `~/.dashapp/outlook_token.json`, `~/.dashapp/outlook_calendar_token.json`.
-`outlook_credentials.json` format: `{"client_id": "...", "tenant_id": "consumers"}`.
-
-Jira uses Basic Auth (`requests.Session`).
-`jira_credentials.json` format: `{"url": "https://yourco.atlassian.net", "email": "...", "api_token": "..."}`.
+Jira and Confluence both use Atlassian Basic Auth (`requests.Session`, email +
+API token). Same credentials format for each:
+`{"url": "https://yourco.atlassian.net", "email": "...", "api_token": "..."}`.
+The Confluence REST API lives under `<url>/wiki` (v2 endpoints:
+`/wiki/api/v2/spaces`, `/wiki/api/v2/pages`).
 
 ## Pull Requests
 

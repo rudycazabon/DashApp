@@ -2,9 +2,8 @@
 
 A cross-platform, plugin-based TUI dashboard built with [Textual](https://textual.textualize.io/).
 
-DashApp aggregates your personal productivity data — email, calendar — into a single
-terminal interface. Each data source is a self-contained plugin discovered automatically
-at startup.
+DashApp aggregates your personal productivity data into a single terminal interface.
+Each data source is a self-contained plugin discovered automatically at startup.
 
 ---
 
@@ -26,10 +25,8 @@ _Coming soon._
 
 | Tool | What it shows |
 |---|---|
-| Gmail | Today's received messages |
-| Google Calendar | Today's events from your primary calendar |
-| Outlook | Today's received messages (personal Microsoft account) |
-| Outlook Calendar | Today's events from your Outlook calendar |
+| Jira | Open issues grouped by project |
+| Confluence | Recently updated pages grouped by space |
 
 ---
 
@@ -60,29 +57,22 @@ uv run dashapp
 
 ## Credentials setup
 
-### Gmail and Google Calendar
+### Jira and Confluence
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
-2. Create an **OAuth 2.0 Client ID** (Desktop app type)
-3. Enable the **Gmail API** and **Google Calendar API** for your project
-4. Download the credentials file and save it as `~/.dashapp/credentials.json`
-5. On first run, a browser window opens for OAuth consent; the token is cached at
-   `~/.dashapp/gmail_token.json` and `~/.dashapp/calendar_token.json`
+Both use an Atlassian API token (same token works for both).
 
-### Outlook Mail and Outlook Calendar
-
-1. Go to [Azure Portal](https://portal.azure.com) → App registrations → New registration
-2. Set **Supported account types** to "Personal Microsoft accounts only"
-3. Add a **Redirect URI** → Platform: Mobile and desktop → URI: `http://localhost`
-4. Copy the **Application (client) ID**
-5. Create `~/.dashapp/outlook_credentials.json`:
+1. Create an **API token** at
+   [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+2. Create `~/.dashapp/jira_credentials.json`:
    ```json
-   {"client_id": "<your-app-client-id>", "tenant_id": "consumers"}
+   {"url": "https://yourco.atlassian.net", "email": "you@example.com", "api_token": "<your-api-token>"}
    ```
-6. On first run, a browser window opens for OAuth consent; tokens are cached at
-   `~/.dashapp/outlook_token.json` and `~/.dashapp/outlook_calendar_token.json`
+3. Create `~/.dashapp/confluence_credentials.json` (same site URL, email, and token):
+   ```json
+   {"url": "https://yourco.atlassian.net", "email": "you@example.com", "api_token": "<your-api-token>"}
+   ```
 
-All credential and token files live in `~/.dashapp/` — never in the project root.
+All credential files live in `~/.dashapp/` — never in the project root.
 
 ---
 
@@ -98,13 +88,12 @@ DashApp/
 │   └── screens/home.py           # Home tab widget
 ├── tools/
 │   ├── base.py                   # BaseTool ABC
-│   ├── gmail/                    # Gmail tool
-│   ├── calendar/                 # Google Calendar tool
-│   ├── outlook/                  # Outlook mail tool
-│   └── outlook_calendar/         # Outlook Calendar tool
+│   ├── demo/                     # Smoke-test plugin
+│   ├── jira/                     # Jira tool
+│   └── confluence/               # Confluence tool
 ├── db/manager.py                 # SQLite helpers
 ├── util/paths.py                 # Shared filesystem paths
-└── tests/                        # pytest suite (68 tests)
+└── tests/                        # pytest suite (57 tests)
 ```
 
 ---

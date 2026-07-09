@@ -9,17 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
-# Google OAuth credentials — never commit
-credentials.json
-gmail_token.json
-*.apps.googleusercontent.com.json
-mygdrive-*.json
-
-# Microsoft OAuth credentials — never commit
-outlook_credentials.json
-azure.txt
-
 # Jira / Atlassian credentials — never commit
 jira_credentials.json
+confluence_credentials.json
 atlassian.txt
 atlassian.ps1

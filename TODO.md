@@ -52,7 +52,7 @@
 
 ### 6. Test coverage audit
 - **Status:** Pending
-- **Context:** Suite is 90 tests covering auth, client, and path logic per tool.
+- **Context:** Suite is 57 tests covering auth, client, and path logic per tool.
   No widget/integration tests yet. Consider adding smoke tests for `load_tools()`
   and `DashApp` composition using Textual's `Pilot` test API.
 - **How to run:** `uv run pytest tests/ -v --tb=short`
@@ -72,3 +72,5 @@
 | C07 | Credential migration to `~/.dashapp/` | `checkpoints/09-credential-migration.md` |
 | C08 | Keyboard navigation (Tab/Shift-Tab/arrows) | `checkpoints/10-keyboard-navigation.md` |
 | C09 | Packaging and distribution | `checkpoints/11-packaging.md` |
+| C10 | Remove Gmail/Google Calendar/Outlook/Outlook Calendar tools | `checkpoints/12-remove-google-outlook-tools.md` |
+| C11 | Confluence tool | `checkpoints/13-confluence-tool.md` |
